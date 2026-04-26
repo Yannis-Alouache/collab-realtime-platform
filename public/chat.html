@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Chat temps réel</title>
+    <link rel="stylesheet" href="/css/app.css" />
+  </head>
+  <body>
+    <div class="container">
+      <div class="card">
+        <h2>Chat</h2>
+        <p>Pseudo: <strong id="me"></strong></p>
+        <p><a href="/dashboard.html">Dashboard</a> | <a href="/call.html">Appel vidéo</a> | <a href="/index.html">Déconnexion</a></p>
+      </div>
+      <div class="row">
+        <div class="card">
+          <div id="messages" class="log"></div>
+          <input id="messageInput" placeholder="Votre message..." />
+          <button id="sendBtn">Envoyer</button>
+        </div>
+        <div>
+          <div class="card">
+            <h3>En ligne</h3>
+            <ul id="onlineUsers"></ul>
+          </div>
+          <div class="card">
+            <h3>Leaderboard</h3>
+            <ul id="leaderboard"></ul>
+          </div>
+          <div class="card">
+            <h3>Notifications</h3>
+            <div id="notifications" class="log"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script src="/socket.io/socket.io.js"></script>
+    <script type="module" src="/js/chat.js"></script>
+  </body>
+</html>
+

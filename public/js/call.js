@@ -16,6 +16,19 @@ let localStream;
 let currentTarget = "";
 let currentSessionId = null;
 
+function cleanupCallState() {
+  if (pc) {
+    pc.close();
+    pc = null;
+  }
+  if (localStream) {
+    localStream.getTracks().forEach((track) => track.stop());
+    localStream = null;
+  }
+  localVideo.srcObject = null;
+  remoteVideo.srcObject = null;
+}
+
 async function ensureMedia(mode = "audio-video") {
   if (!localStream) {
     localStream = await acquireUserMediaForMode(navigator.mediaDevices, mode);
@@ -74,22 +87,39 @@ modeSelect.addEventListener("change", () => {
 callBtn.disabled = !modeSelect.value;
 callBtn.onclick = startCall;
 document.getElementById("hangupBtn").onclick = () => {
-  if (pc) pc.close();
+  cleanupCallState();
   socket.emit("webrtc:hangup", { targetPseudo: currentTarget, sessionId: currentSessionId });
 };
 
 socket.on("webrtc:offer", async ({ from, offer, sessionId }) => {
+  if (pc) {
+    socket.emit("webrtc:hangup", { targetPseudo: from, sessionId });
+    return;
+  }
   currentTarget = from;
   currentSessionId = sessionId;
-  await ensureMedia(modeSelect.value || "audio-video");
-  pc = buildPc();
-  for (const track of localStream.getTracks()) {
-    pc.addTrack(track, localStream);
+  const selectedMode = modeSelect.value;
+  if (!selectedMode) {
+    alert("Selectionne d'abord un mode d'appel pour repondre.");
+    socket.emit("webrtc:hangup", { targetPseudo: from, sessionId });
+    return;
   }
-  await pc.setRemoteDescription(offer);
-  const answer = await pc.createAnswer();
-  await pc.setLocalDescription(answer);
-  socket.emit("webrtc:answer", { targetPseudo: from, answer, sessionId });
+  try {
+    await ensureMedia(selectedMode);
+    pc = buildPc();
+    for (const track of localStream.getTracks()) {
+      pc.addTrack(track, localStream);
+    }
+    await pc.setRemoteDescription(offer);
+    const answer = await pc.createAnswer();
+    await pc.setLocalDescription(answer);
+    socket.emit("webrtc:answer", { targetPseudo: from, answer, sessionId });
+  } catch (error) {
+    console.error("Incoming call setup failed:", error);
+    socket.emit("webrtc:hangup", { targetPseudo: from, sessionId });
+    alert(`Impossible de repondre a l'appel: ${error.message ?? "Erreur inconnue"}`);
+    cleanupCallState();
+  }
 });
 
 socket.on("webrtc:answer", async ({ answer }) => {
@@ -101,7 +131,7 @@ socket.on("webrtc:ice", async ({ candidate }) => {
 });
 
 socket.on("webrtc:hangup", () => {
-  if (pc) pc.close();
+  cleanupCallState();
 });
 
 socket.on("error:event", ({ error }) => {

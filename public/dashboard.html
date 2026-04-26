@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard système</title>
+    <link rel="stylesheet" href="/css/app.css" />
+  </head>
+  <body>
+    <div class="container">
+      <div class="card">
+        <h2>Dashboard CPU/RAM</h2>
+        <p><a href="/chat.html">Retour chat</a></p>
+      </div>
+      <div id="alertBox" class="alert"></div>
+      <div class="card"><canvas id="metricsChart" height="120"></canvas></div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="/js/dashboard.js"></script>
+  </body>
+</html>
+

@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin notifications</title>
+    <link rel="stylesheet" href="/css/app.css" />
+  </head>
+  <body>
+    <div class="container">
+      <div class="card">
+        <h2>Panneau admin notifications</h2>
+        <p><a href="/chat.html">Ouvrir le chat</a></p>
+        <select id="level">
+          <option value="info">info</option>
+          <option value="warning">warning</option>
+          <option value="critical">critical</option>
+        </select>
+        <input id="title" placeholder="Titre" />
+        <textarea id="body" placeholder="Message"></textarea>
+        <button id="send">Envoyer notification</button>
+      </div>
+      <div class="card"><div id="log" class="log"></div></div>
+    </div>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/js/admin.js"></script>
+  </body>
+</html>
+

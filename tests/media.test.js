@@ -46,3 +46,15 @@ test("acquireUserMediaForMode falls back to audio-only when audio-video is unava
   ]);
 });
 
+test("acquireUserMediaForMode rejects unsupported mode", async () => {
+  const mediaDevices = {
+    async getUserMedia() {
+      throw new Error("should not be called");
+    }
+  };
+  await assert.rejects(
+    () => acquireUserMediaForMode(mediaDevices, "invalid-mode"),
+    /Unsupported call mode/
+  );
+});
+

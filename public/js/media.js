@@ -1,11 +1,15 @@
 export async function acquireUserMediaForMode(mediaDevices, mode) {
   if (mode === "audio-only") {
-    return mediaDevices.getUserMedia({ audio: true, video: false });
+    return await mediaDevices.getUserMedia({ audio: true, video: false });
   }
+  if (mode !== "audio-video") {
+    throw new Error(`Unsupported call mode: ${mode}`);
+  }
+
   try {
     return await mediaDevices.getUserMedia({ audio: true, video: true });
   } catch {
-    return mediaDevices.getUserMedia({ audio: true, video: false });
+    return await mediaDevices.getUserMedia({ audio: true, video: false });
   }
 }
 

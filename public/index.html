@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Connexion</title>
+    <link rel="stylesheet" href="/css/app.css" />
+  </head>
+  <body>
+    <div class="container">
+      <div class="card">
+        <h1>Plateforme collaborative</h1>
+        <label>Pseudo (admin réservé aux notifications)</label>
+        <input id="pseudo" maxlength="24" placeholder="ex: alice" />
+        <button id="login">Se connecter au chat</button>
+        <button id="loginAdmin">Se connecter en admin notifications</button>
+      </div>
+    </div>
+    <script type="module">
+      import { savePseudoToStorage } from "/js/session.js";
+
+      async function login(area) {
+        const pseudo = document.getElementById("pseudo").value.trim();
+        const res = await fetch("/api/auth/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ pseudo, area })
+        });
+        const data = await res.json();
+        if (!res.ok) return alert(data.error ?? "Erreur");
+        savePseudoToStorage(window.sessionStorage, pseudo);
+        if (area === "admin") location.href = "/admin.html";
+        else location.href = "/chat.html";
+      }
+      document.getElementById("login").onclick = () => login("chat");
+      document.getElementById("loginAdmin").onclick = async () => {
+        document.getElementById("pseudo").value = "admin";
+        await login("admin");
+      };
+    </script>
+  </body>
+</html>
+
