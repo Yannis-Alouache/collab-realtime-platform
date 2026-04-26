@@ -13,10 +13,12 @@ const db = new DatabaseSync(dbPath);
 const schema = fs.readFileSync(path.resolve(process.cwd(), "server", "db", "schema.sql"), "utf8");
 db.exec(schema);
 
+// Produces a stable ISO timestamp used across all persisted records.
 function nowIso() {
   return new Date().toISOString();
 }
 
+// Creates or updates a user record and its current online status.
 export function upsertUser(pseudo, online) {
   db.prepare(
     `INSERT INTO users (pseudo, is_online, last_seen_at, created_at)
@@ -27,10 +29,12 @@ export function upsertUser(pseudo, online) {
   ).run({ pseudo, online: online ? 1 : 0, seen: nowIso(), created: nowIso() });
 }
 
+// Returns all users currently flagged online, sorted by pseudo.
 export function listOnlineUsers() {
   return db.prepare("SELECT pseudo FROM users WHERE is_online = 1 ORDER BY pseudo ASC").all();
 }
 
+// Persists one chat message and increments the sender activity counter.
 export function insertMessage(userPseudo, content) {
   const createdAt = nowIso();
   const result = db.prepare("INSERT INTO messages (user_pseudo, content, created_at) VALUES (?, ?, ?)").run(userPseudo, content, createdAt);
@@ -38,6 +42,7 @@ export function insertMessage(userPseudo, content) {
   return { id: result.lastInsertRowid, userPseudo, content, createdAt };
 }
 
+// Fetches latest messages and reorders them from oldest to newest for clients.
 export function getMessages(limit = 100) {
   return db
     .prepare("SELECT id, user_pseudo as userPseudo, content, created_at as createdAt FROM messages ORDER BY id DESC LIMIT ?")
@@ -45,6 +50,7 @@ export function getMessages(limit = 100) {
     .reverse();
 }
 
+// Persists a notification authored by a pseudo and returns API-shaped payload.
 export function insertNotification(level, title, body, createdByPseudo) {
   const createdAt = nowIso();
   const result = db
@@ -53,6 +59,7 @@ export function insertNotification(level, title, body, createdByPseudo) {
   return { id: result.lastInsertRowid, level, title, body, createdByPseudo, createdAt };
 }
 
+// Fetches latest notifications and reorders them from oldest to newest for clients.
 export function getNotifications(limit = 100) {
   return db
     .prepare(
@@ -62,10 +69,12 @@ export function getNotifications(limit = 100) {
     .reverse();
 }
 
+// Increments the notification acknowledgment counter for a pseudo.
 export function recordNotificationReceive(pseudo) {
   incrementCounter(pseudo, "alerts_received");
 }
 
+// Creates a video session row and increments the initiator activity counter.
 export function createVideoSession(initiatorPseudo, targetPseudo) {
   const startedAt = nowIso();
   const result = db
@@ -75,10 +84,12 @@ export function createVideoSession(initiatorPseudo, targetPseudo) {
   return { id: result.lastInsertRowid, initiatorPseudo, targetPseudo, startedAt, status: "started" };
 }
 
+// Marks an existing video session as ended with an end timestamp.
 export function endVideoSession(sessionId) {
   db.prepare("UPDATE video_sessions SET ended_at = ?, status = ? WHERE id = ?").run(nowIso(), "ended", sessionId);
 }
 
+// Persists one synthetic system metric sample used by dashboard monitoring.
 export function insertMetric(cpuPercent, ramPercent) {
   db.prepare("INSERT INTO system_metrics (cpu_percent, ram_percent, created_at) VALUES (?, ?, ?)").run(
     cpuPercent,
@@ -87,6 +98,7 @@ export function insertMetric(cpuPercent, ramPercent) {
   );
 }
 
+// Returns ranked activity counters as leaderboard rows.
 export function getLeaderboard(limit = 20) {
   return db
     .prepare(
@@ -99,6 +111,7 @@ export function getLeaderboard(limit = 20) {
     .all(limit);
 }
 
+// Lazily creates and increments one supported activity counter column for a pseudo.
 function incrementCounter(pseudo, column) {
   if (!["messages_sent", "alerts_received", "video_sessions_started"].includes(column)) {
     throw new Error(`Unsupported counter: ${column}`);
