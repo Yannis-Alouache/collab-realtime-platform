@@ -1,6 +1,7 @@
 // Builds the SSE metrics stream and periodic metric simulation loop used by the dashboard.
-export function createMetricsStream({ insertMetric, config }) {
+export function createMetricsStream({ insertMetric, config, setIntervalFn = setInterval, clearIntervalFn = clearInterval }) {
   const metricsClients = new Set();
+  let simulationTimer = null;
 
   // Pushes one synthetic metric sample to DB and all connected SSE clients.
   function simulateMetric() {
@@ -32,9 +33,17 @@ export function createMetricsStream({ insertMetric, config }) {
 
   // Starts the periodic metrics simulation that feeds dashboard SSE clients.
   function startMetricSimulation() {
-    setInterval(simulateMetric, config.metricsIntervalMs);
+    if (simulationTimer) return;
+    simulationTimer = setIntervalFn(simulateMetric, config.metricsIntervalMs);
   }
 
-  return { registerDashboardStreamRoute, startMetricSimulation };
+  // Stops the periodic simulation loop to avoid dangling timers during server shutdown/reloads.
+  function stopMetricSimulation() {
+    if (!simulationTimer) return;
+    clearIntervalFn(simulationTimer);
+    simulationTimer = null;
+  }
+
+  return { registerDashboardStreamRoute, startMetricSimulation, stopMetricSimulation };
 }
 
