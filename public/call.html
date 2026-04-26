@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>WebRTC 1-à-1</title>
+    <link rel="stylesheet" href="/css/app.css" />
+  </head>
+  <body>
+    <div class="container">
+      <div class="card">
+        <h2>Appel audio/vidéo</h2>
+        <p><a href="/chat.html">Retour chat</a></p>
+        <input id="targetPseudo" placeholder="Pseudo de la personne à appeler" />
+        <select id="callMode">
+          <option value="">Choisir un mode...</option>
+          <option value="audio-only">Audio seul</option>
+          <option value="audio-video">Audio + Vidéo</option>
+        </select>
+        <button id="callBtn" disabled>Appeler</button>
+        <button id="hangupBtn">Raccrocher</button>
+      </div>
+      <div class="row">
+        <div class="card">
+          <h3>Local</h3>
+          <video id="localVideo" autoplay muted playsinline width="100%"></video>
+        </div>
+        <div class="card">
+          <h3>Remote</h3>
+          <video id="remoteVideo" autoplay playsinline width="100%"></video>
+        </div>
+      </div>
+    </div>
+    <script src="/socket.io/socket.io.js"></script>
+    <script type="module" src="/js/call.js"></script>
+  </body>
+</html>
+
