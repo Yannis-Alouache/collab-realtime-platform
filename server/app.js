@@ -69,6 +69,8 @@ export function attachSocket(server) {
     endVideoSession
   });
   metricsStream.startMetricSimulation();
+  // Stops metric simulation when the HTTP server shuts down to avoid orphan intervals.
+  server.once("close", () => metricsStream.stopMetricSimulation());
   return io;
 }
 
